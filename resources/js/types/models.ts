@@ -5,6 +5,8 @@ export type Product = {
     name: string;
     category: string;
     specification: string | null;
+    photo_path: string | null;
+    photo_url?: string | null;
     base_unit: string;
     cost_price: string;
     selling_price: string;
@@ -16,6 +18,7 @@ export type Product = {
     // computed
     stock_physical?: number;
     is_active?: boolean;
+    stock_transactions_exists?: boolean;
 };
 
 export type StockTransaction = {
@@ -23,7 +26,7 @@ export type StockTransaction = {
     workspace_id: number;
     product_id: number;
     transaction_number: string;
-    type: 'inbound' | 'outbound';
+    type: 'opening' | 'inbound' | 'outbound';
     transaction_date: string;
     external_document_number: string | null;
     supplier: string | null;
@@ -136,4 +139,3 @@ export type Shipment = {
     documents?: ShipmentDocument[];
     status_histories?: ShipmentStatusHistory[];
 };
-

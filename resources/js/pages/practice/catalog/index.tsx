@@ -13,6 +13,8 @@ import {
     XCircle,
     ChevronLeft,
     ChevronRight,
+    Check,
+    Palette,
 } from 'lucide-react';
 import { useState } from 'react';
 import PracticeLayout from '@/layouts/practice/practice-layout';
@@ -35,6 +37,28 @@ export default function CatalogIndex({ products, categories, filters }: Props) {
     const [search, setSearch] = useState(filters.search ?? '');
     const [selectedCategory, setSelectedCategory] = useState(filters.category ?? '');
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const visibleIds = products.data.map((product) => product.id).filter((id): id is number => Boolean(id));
+    const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
+
+    function toggleProduct(id?: number) {
+        if (!id) return;
+        setSelectedIds((current) => current.includes(id)
+            ? current.filter((item) => item !== id)
+            : [...current, id]);
+    }
+
+    function toggleVisibleProducts() {
+        setSelectedIds((current) => allVisibleSelected
+            ? current.filter((id) => !visibleIds.includes(id))
+            : [...new Set([...current, ...visibleIds])]);
+    }
+
+    function openBrochure() {
+        if (selectedIds.length === 0) return;
+        const query = selectedIds.map((id) => `products[]=${id}`).join('&');
+        window.location.href = `/praktik/katalog/brosur?${query}`;
+    }
 
     function applyFilters(newCategory?: string) {
         const cat = newCategory !== undefined ? newCategory : selectedCategory;
@@ -73,10 +97,29 @@ export default function CatalogIndex({ products, categories, filters }: Props) {
                             Katalog produk aktif ruang praktik
                         </p>
                     </div>
-                    <div className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                        <BookOpen className="h-3.5 w-3.5" />
-                        <span>{products.total} Produk</span>
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                            <BookOpen className="h-3.5 w-3.5" />
+                            <span>{products.total} Produk</span>
+                        </div>
+                        {selectedIds.length > 0 && (
+                            <button type="button" onClick={openBrochure} className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-sm">
+                                <Palette className="h-3.5 w-3.5" />
+                                Brosur ({selectedIds.length})
+                            </button>
+                        )}
                     </div>
+                </div>
+
+                <div className="flex flex-col gap-2 rounded-2xl border border-primary/20 bg-primary/5 p-3 text-xs sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p className="font-semibold text-foreground">Pilih produk untuk dibuatkan brosur</p>
+                        <p className="text-muted-foreground">Bisa memilih satu per satu atau semua produk pada filter saat ini.</p>
+                    </div>
+                    <button type="button" onClick={toggleVisibleProducts} className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-primary/30 bg-background px-3 py-2 font-semibold text-primary">
+                        <Check className="h-3.5 w-3.5" />
+                        {allVisibleSelected ? 'Batalkan Pilihan' : 'Pilih Semua'}
+                    </button>
                 </div>
 
                 {/* Search Bar */}
@@ -156,14 +199,22 @@ export default function CatalogIndex({ products, categories, filters }: Props) {
                             return (
                                 <div
                                     key={product.id}
-                                    className="group flex flex-col justify-between rounded-2xl border border-border/60 bg-card p-4 shadow-sm transition-all hover:shadow-md hover:border-primary/40"
+                                    className="group relative flex flex-col justify-between rounded-2xl border border-border/60 bg-card p-4 shadow-sm transition-all hover:shadow-md hover:border-primary/40"
                                 >
+                                    <button
+                                        type="button"
+                                        aria-label={`Pilih ${product.name}`}
+                                        onClick={() => toggleProduct(product.id)}
+                                        className={`absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-lg border-2 transition-colors ${product.id && selectedIds.includes(product.id) ? 'border-primary bg-primary text-primary-foreground' : 'border-white bg-white/90 text-transparent shadow-sm'}`}
+                                    >
+                                        <Check className="h-4 w-4" />
+                                    </button>
                                     <div>
                                         {/* Top Image / Placeholder */}
                                         <div className="relative mb-3 flex h-36 w-full items-center justify-center rounded-xl bg-gradient-to-br from-primary/5 via-muted to-primary/10 overflow-hidden">
-                                            {product.photo_path ? (
+                                            {product.photo_url ? (
                                                 <img
-                                                    src={`/storage/${product.photo_path}`}
+                                                    src={product.photo_url}
                                                     alt={product.name}
                                                     className="h-full w-full object-cover"
                                                 />

@@ -5,6 +5,7 @@ import PracticeLayout from '@/layouts/practice/practice-layout';
 import { formatRp } from '@/lib/format';
 import type { Product, Paginated } from '@/types';
 import practice from '@/routes/practice';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 type Props = {
     products: Paginated<Product>;
@@ -15,6 +16,9 @@ type Props = {
 export default function ProductsIndex({ products, categories, filters }: Props) {
     const [search, setSearch] = useState(filters.search ?? '');
     const [debounced, setDebounced] = useState(search);
+    const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
     const isArchived = filters.status === 'archived';
 
     // debounce search input
@@ -41,15 +45,42 @@ export default function ProductsIndex({ products, categories, filters }: Props) 
     }
 
     function handleArchiveToggle(product: Product) {
+        if (!product.id) {
+            return;
+        }
+
         const url = isArchived
-            ? practice.products.reactivate.url({ barang: product.id })
-            : practice.products.archive.url({ barang: product.id });
+            ? `/praktik/barang/${product.id}/reactivate`
+            : `/praktik/barang/${product.id}/archive`;
         router.post(url, {}, { preserveScroll: true });
     }
 
     function handleDelete(product: Product) {
-        if (!confirm(`Hapus barang "${product.name}"? Tindakan ini tidak dapat dibatalkan.`)) return;
-        router.delete(practice.products.destroy.url({ barang: product.id }), { preserveScroll: true });
+        if (!product.id) {
+            return;
+        }
+
+        setDeleteTarget(product);
+        setDeleteError(null);
+    }
+
+    function confirmDelete() {
+        if (!deleteTarget?.id) {
+            return;
+        }
+
+        setIsDeleting(true);
+        router.delete(`/praktik/barang/${deleteTarget.id}`, {
+            preserveScroll: true,
+            onSuccess: () => setDeleteTarget(null),
+            onError: (errors) => {
+                setDeleteError(
+                    errors.delete ??
+                    'Barang tidak dapat dihapus. Jika sudah memiliki transaksi, gunakan Arsipkan.',
+                );
+            },
+            onFinish: () => setIsDeleting(false),
+        });
     }
 
     return (
@@ -128,15 +159,27 @@ export default function ProductsIndex({ products, categories, filters }: Props) 
                     </div>
                 ) : (
                     <div className="space-y-2">
-                        {products.data.map((product) => (
-                            <div key={product.id} className="group relative overflow-hidden rounded-2xl bg-card shadow-sm">
+                        {products.data.map((product) => {
+                            const canDelete =
+                                product.stock_good === 0 &&
+                                product.stock_damaged === 0 &&
+                                !product.stock_transactions_exists;
+
+                            return (
+                            <div key={product.id ?? product.code} className="group relative overflow-hidden rounded-2xl bg-card shadow-sm">
                                 <Link
-                                    href={practice.products.show.url({ barang: product.id })}
+                                    href={product.id ? `/praktik/barang/${product.id}` : '#'}
                                     className="flex items-center gap-3 p-4"
                                 >
                                     {/* Icon placeholder */}
-                                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                                        <Package className="h-6 w-6 text-primary" />
+                                    <div className="flex items-center gap-4">
+                                        {product.photo_url ? (
+                                            <img src={product.photo_url} alt={product.name} className="h-16 w-16 flex-shrink-0 rounded-2xl object-cover" />
+                                        ) : (
+                                            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-primary/10">
+                                                <Package className="h-8 w-8 text-primary" />
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-start justify-between gap-2">
@@ -166,7 +209,7 @@ export default function ProductsIndex({ products, categories, filters }: Props) 
                                 {/* Swipe action row */}
                                 <div className="flex border-t border-border/50">
                                     <Link
-                                        href={practice.products.edit.url({ barang: product.id })}
+                                        href={product.id ? `/praktik/barang/${product.id}/edit` : '#'}
                                         className="flex-1 py-2.5 text-center text-xs font-medium text-primary"
                                     >
                                         Edit
@@ -178,16 +221,19 @@ export default function ProductsIndex({ products, categories, filters }: Props) 
                                         {isArchived ? <ArchiveRestore className="h-3.5 w-3.5" /> : <Archive className="h-3.5 w-3.5" />}
                                         {isArchived ? 'Aktifkan' : 'Arsipkan'}
                                     </button>
-                                    <button
-                                        onClick={() => handleDelete(product)}
-                                        className="flex flex-1 items-center justify-center gap-1 py-2.5 text-xs font-medium text-destructive"
-                                    >
-                                        <Trash2 className="h-3.5 w-3.5" />
-                                        Hapus
-                                    </button>
+                                    {canDelete && (
+                                        <button
+                                            onClick={() => handleDelete(product)}
+                                            className="flex flex-1 items-center justify-center gap-1 py-2.5 text-xs font-medium text-destructive"
+                                        >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                            Hapus
+                                        </button>
+                                    )}
                                 </div>
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
 
@@ -200,19 +246,79 @@ export default function ProductsIndex({ products, categories, filters }: Props) 
                                     key={i}
                                     href={link.url}
                                     className={`min-w-[36px] rounded-lg px-2.5 py-1.5 text-center text-sm font-medium transition-colors ${link.active ? 'bg-primary text-primary-foreground' : 'bg-card text-foreground hover:bg-muted'}`}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                />
+                                >
+                                    {getPaginationLabel(link.label)}
+                                </Link>
                             ) : (
                                 <span
                                     key={i}
                                     className="min-w-[36px] rounded-lg px-2.5 py-1.5 text-center text-sm text-muted-foreground"
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                />
+                                >
+                                    {getPaginationLabel(link.label)}
+                                </span>
                             )
                         ))}
                     </div>
                 )}
             </div>
+
+            <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && !isDeleting && setDeleteTarget(null)}>
+                <DialogContent className="max-w-md rounded-2xl p-5">
+                    <DialogHeader>
+                        <DialogTitle className="text-sm font-bold text-destructive">
+                            Hapus Barang?
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-3">
+                        <p className="text-sm text-muted-foreground">
+                            Barang <strong className="text-foreground">{deleteTarget?.name}</strong> akan dihapus permanen.
+                            Barang hanya dapat dihapus jika stoknya sudah 0 dan belum memiliki riwayat transaksi.
+                            Jika sudah pernah digunakan, gunakan Arsipkan.
+                        </p>
+                        {deleteError && (
+                            <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                                {deleteError}
+                            </p>
+                        )}
+                        <div className="flex gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setDeleteTarget(null)}
+                                className="flex-1 rounded-xl border border-border py-2.5 text-sm font-semibold"
+                                disabled={isDeleting}
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="button"
+                                onClick={confirmDelete}
+                                className="flex-1 rounded-xl text-white bg-destructive py-2.5 text-sm font-semibold text-destructive-foreground disabled:opacity-60"
+                                disabled={isDeleting}
+                            >
+                                {isDeleting ? 'Menghapus...' : 'Ya, Hapus'}
+                            </button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </PracticeLayout>
     );
+}
+
+function getPaginationLabel(label: string): string {
+    const normalized = label.replace(/<[^>]*>/g, '').trim().toLowerCase();
+
+    if (normalized.includes('pagination.previous') || normalized.includes('previous')) {
+        return 'Sebelumnya';
+    }
+
+    if (normalized.includes('pagination.next') || normalized.includes('next')) {
+        return 'Berikutnya';
+    }
+
+    return label
+        .replace(/<[^>]*>/g, '')
+        .replace(/&laquo;/gi, '«')
+        .replace(/&raquo;/gi, '»')
+        .trim();
 }

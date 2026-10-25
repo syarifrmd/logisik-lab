@@ -59,7 +59,7 @@ export default function BarcodePrint({ product, barcodeSvg }: Props) {
                     </button>
                     <button
                         type="button"
-                        onClick={() => window.close()}
+                        onClick={() => window.history.back()}
                         className="rounded-xl border border-input bg-card px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-muted"
                     >
                         Tutup

@@ -60,7 +60,7 @@ export default function InboundShow({ transaction }: Props) {
                 {/* Product Card */}
                 {transaction.product && (
                     <Link
-                        href={practice.products.show.url({ barang: transaction.product.id })}
+                        href={practice.products.show.url({ product: transaction.product.id })}
                         className="flex items-center gap-3 rounded-2xl bg-card p-4 shadow-sm"
                     >
                         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-100">
@@ -108,6 +108,15 @@ export default function InboundShow({ transaction }: Props) {
                         <p className="text-xs text-muted-foreground mb-1">Catatan</p>
                         <p className="text-sm text-foreground">{transaction.notes}</p>
                     </div>
+                )}
+
+                {!isVoided && (
+                    <Link
+                        href={practice.shipments.create.url()}
+                        className="flex w-full items-center justify-center rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground"
+                    >
+                        Lanjut ke Pengiriman
+                    </Link>
                 )}
 
                 {/* Void action */}

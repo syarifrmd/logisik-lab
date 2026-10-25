@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Practice\StoreProductRequest;
 use App\Http\Requests\Practice\UpdateProductRequest;
 use App\Models\Product;
+use App\Services\BarcodeService;
 use App\Services\NumberingService;
 use App\Services\StockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpKernel\Exception\ConflictException;
 
 class ProductController extends Controller
@@ -21,6 +23,7 @@ class ProductController extends Controller
     public function __construct(
         private readonly StockService $stockService,
         private readonly NumberingService $numberingService,
+        private readonly BarcodeService $barcodeService,
     ) {}
 
     /**
@@ -45,8 +48,30 @@ class ProductController extends Controller
             }, function ($query): void {
                 $query->whereNull('archived_at');
             })
+            ->withExists('stockTransactions')
             ->orderBy('created_at', 'desc')
-            ->paginate($request->input('per_page', 10), ['*'], 'page', $request->input('page'));
+            ->paginate(
+                $request->input('per_page', 10),
+                [
+                    'id',
+                    'workspace_id',
+                    'code',
+                    'name',
+                    'category',
+                    'specification',
+                    'base_unit',
+                    'cost_price',
+                    'selling_price',
+                    'photo_path',
+                    'stock_good',
+                    'stock_damaged',
+                    'archived_at',
+                    'created_at',
+                    'updated_at',
+                ],
+                'page',
+                $request->input('page'),
+            );
 
         $categories = Product::where('workspace_id', $workspace->id)
             ->distinct()
@@ -76,6 +101,7 @@ class ProductController extends Controller
         return Inertia::render('practice/products/create', [
             'suggestedCode' => $suggestedCode,
             'categories' => $categories,
+            'barcodeMode' => $request->input('barcode_mode') === 'existing' ? 'existing' : 'automatic',
         ]);
     }
 
@@ -120,7 +146,28 @@ class ProductController extends Controller
 
         return Inertia::render('practice/products/show', [
             'product' => $product,
+            'barcodeSvg' => $this->barcodeService->svg($product->code, 2, 80),
         ]);
+    }
+
+    /**
+     * Display a product photo stored on the private disk.
+     */
+    public function photo(Request $request, Product $product): BinaryFileResponse
+    {
+        $workspace = $this->workspace($request);
+
+        if ($product->workspace_id !== $workspace->id || $product->photo_path === null) {
+            abort(404);
+        }
+
+        $disk = Storage::disk('private');
+
+        if (! $disk->exists($product->photo_path)) {
+            abort(404);
+        }
+
+        return response()->file($disk->path($product->photo_path));
     }
 
     /**
@@ -182,11 +229,21 @@ class ProductController extends Controller
             abort(404);
         }
 
+        if ($product->stock_good > 0 || $product->stock_damaged > 0) {
+            return back()->withErrors([
+                'delete' => sprintf(
+                    'Barang masih memiliki stok %d baik dan %d rusak. Habiskan atau keluarkan stok terlebih dahulu sebelum menghapus barang.',
+                    $product->stock_good,
+                    $product->stock_damaged,
+                ),
+            ]);
+        }
+
         $hasTransactions = $product->stockTransactions()->exists();
 
         if ($hasTransactions) {
             return back()->withErrors([
-                'delete' => 'Barang ini sudah memiliki riwayat transaksi. Gunakan Arsipkan sebagai ganti.',
+                'delete' => 'Stok barang sudah 0, tetapi barang ini memiliki riwayat transaksi. Barang tidak dapat dihapus agar riwayat tetap aman. Gunakan Arsipkan sebagai gantinya.',
             ]);
         }
 

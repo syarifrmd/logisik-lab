@@ -29,6 +29,12 @@ export default defineConfig({
         }),
     ]),
     server: {
+        // host: '0.0.0.0', // Mengizinkan akses dari perangkat mana pun di Wi-Fi yang sama
+        // port: 5173,
+        // strictPort: true,
+        // hmr: {
+        //     host: '192.168.18.101', // WAJIB: Ganti dengan IP lokal PC Anda!
+        // },
         watch: {
             ignored: [
                 '**/.agents/**',

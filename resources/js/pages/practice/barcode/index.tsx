@@ -8,6 +8,8 @@ import {
     CheckCircle2,
     ArrowRight,
     ChevronDown,
+    Plus,
+    Barcode,
 } from 'lucide-react';
 import { useState } from 'react';
 import PracticeLayout from '@/layouts/practice/practice-layout';
@@ -41,14 +43,31 @@ export default function BarcodeIndex({ products, selectedProduct, barcodeSvg }: 
         <PracticeLayout title="Barcode">
             <div className="space-y-4">
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <h1 className="text-xl font-bold tracking-tight text-foreground">
+                        <h1 className="text-lg font-bold leading-tight tracking-tight text-foreground sm:text-xl">
                             Barcode Generator & Scanner
                         </h1>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                             Buat label Code 128 dan pindai menggunakan kamera ponsel
                         </p>
+                    </div>
+
+                    <div className="grid w-full grid-cols-1 gap-2 sm:w-auto sm:min-w-[28rem] sm:grid-cols-2">
+                        <Link
+                            href={practice.products.create.url({ query: { barcode_mode: 'automatic' } })}
+                            className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-3 py-3 text-center text-xs font-semibold leading-snug text-primary-foreground shadow-sm hover:bg-primary/90 sm:px-4"
+                        >
+                            <Plus className="h-4 w-4 flex-shrink-0" />
+                            <span>Tambah Barang &amp; Barcode Otomatis</span>
+                        </Link>
+                        <Link
+                            href={practice.products.create.url({ query: { barcode_mode: 'existing' } })}
+                            className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-input bg-card px-3 py-3 text-center text-xs font-semibold leading-snug text-foreground hover:bg-muted sm:px-4"
+                        >
+                            <Barcode className="h-4 w-4 flex-shrink-0 text-primary" />
+                            <span>Tambah Barang dengan Barcode yang Ada</span>
+                        </Link>
                     </div>
                 </div>
 

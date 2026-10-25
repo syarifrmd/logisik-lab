@@ -40,6 +40,8 @@ class Product extends Model
     /** @use HasFactory<ProductFactory> */
     use HasFactory;
 
+    protected $appends = ['photo_url'];
+
     protected $guarded = [];
 
     /**
@@ -74,6 +76,13 @@ class Product extends Model
     public function getIsActiveAttribute(): bool
     {
         return $this->archived_at === null;
+    }
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return $this->photo_path === null
+            ? null
+            : route('practice.products.photo', $this);
     }
 
     public function stockForCondition(StockCondition $condition): int

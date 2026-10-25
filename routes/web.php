@@ -20,6 +20,7 @@ Route::middleware(['auth', 'workspace'])->prefix('praktik')->name('practice.')->
     Route::get('/', [HomeController::class, 'index'])->name('home');
 
     // Data Barang
+    Route::get('barang/{product}/foto', [ProductController::class, 'photo'])->name('products.photo');
     Route::resource('barang', ProductController::class)
         ->parameters(['barang' => 'product'])
         ->names('products');
@@ -42,6 +43,7 @@ Route::middleware(['auth', 'workspace'])->prefix('praktik')->name('practice.')->
 
     // Katalog Barang (FR-08)
     Route::get('katalog', [CatalogController::class, 'index'])->name('catalog.index');
+    Route::get('katalog/brosur', [CatalogController::class, 'brochure'])->name('catalog.brochure');
 
     // Barcode & Pemindai Mobile (FR-09)
     Route::get('barcode', [BarcodeController::class, 'index'])->name('barcode.index');

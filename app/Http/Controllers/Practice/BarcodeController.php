@@ -4,16 +4,20 @@ namespace App\Http\Controllers\Practice;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Services\BarcodeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
 use Inertia\Response;
-use Picqer\Barcode\BarcodeGeneratorSVG;
 
 class BarcodeController extends Controller
 {
     use ResolvesWorkspace;
+
+    public function __construct(
+        private readonly BarcodeService $barcodeService,
+    ) {}
 
     /**
      * Display the barcode generation and scanner page (FR-09).
@@ -41,9 +45,7 @@ class BarcodeController extends Controller
                 ->first();
 
             if ($selectedProduct) {
-                $generator = new BarcodeGeneratorSVG;
-                // Code 128 SVG generator: width factor 2, height 60
-                $barcodeSvg = $generator->getBarcode($selectedProduct->code, $generator::TYPE_CODE_128, 2, 60);
+                $barcodeSvg = $this->barcodeService->svg($selectedProduct->code, 2, 80);
             }
         }
 
@@ -65,8 +67,7 @@ class BarcodeController extends Controller
             abort(404);
         }
 
-        $generator = new BarcodeGeneratorSVG;
-        $svg = $generator->getBarcode($product->code, $generator::TYPE_CODE_128, 2, 60);
+        $svg = $this->barcodeService->svg($product->code, 2, 80);
 
         // Wrap SVG with product name and code text
         $fullSvg = <<<SVG
@@ -100,8 +101,7 @@ SVG;
             abort(404);
         }
 
-        $generator = new BarcodeGeneratorSVG;
-        $barcodeSvg = $generator->getBarcode($product->code, $generator::TYPE_CODE_128, 2, 50);
+        $barcodeSvg = $this->barcodeService->svg($product->code, 2, 80);
 
         return Inertia::render('practice/barcode/print', [
             'product' => $product,

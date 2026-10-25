@@ -26,6 +26,8 @@ class UpdateProductRequest extends FormRequest
             'base_unit' => ['required', 'string', 'max:30'],
             'cost_price' => ['required', 'numeric', 'min:0', 'max:999999999.99'],
             'selling_price' => ['required', 'numeric', 'min:0', 'max:999999999.99'],
+            'stock_good' => ['required', 'integer', 'min:0', 'max:1000000'],
+            'stock_damaged' => ['required', 'integer', 'min:0', 'max:1000000'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
         ];
     }
@@ -42,6 +44,8 @@ class UpdateProductRequest extends FormRequest
             'base_unit.required' => 'Satuan dasar wajib diisi.',
             'cost_price.required' => 'Harga pokok wajib diisi.',
             'selling_price.required' => 'Harga jual wajib diisi.',
+            'stock_good.required' => 'Stok baik wajib diisi.',
+            'stock_damaged.required' => 'Stok rusak wajib diisi.',
         ];
     }
 }

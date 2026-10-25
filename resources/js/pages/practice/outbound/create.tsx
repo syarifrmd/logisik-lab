@@ -74,6 +74,14 @@ export default function OutboundCreate({ products }: Props) {
     const maxQty = data.stock_condition === 'good'
         ? selectedProduct?.stock_good
         : selectedProduct?.stock_damaged;
+    const availableQuantity = maxQty ?? 0;
+    const hasNoAvailableStock = !!selectedProduct && availableQuantity < 1;
+
+    useEffect(() => {
+        if (availableQuantity < 1 && data.quantity !== '') {
+            setData('quantity', '');
+        }
+    }, [data.stock_condition, data.product_id, availableQuantity]);
 
     const totalAmount =
         data.quantity && data.unit_price
@@ -222,9 +230,14 @@ export default function OutboundCreate({ products }: Props) {
                     <section className="rounded-2xl bg-card p-4 shadow-sm space-y-3">
                         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Jumlah & Harga</h2>
 
-                        {maxQty !== undefined && (
+                        {selectedProduct && (
                             <p className="text-xs text-muted-foreground">
-                                Stok {data.stock_condition === 'good' ? 'baik' : 'rusak'} tersedia: <strong>{maxQty}</strong> {selectedProduct?.base_unit}
+                                Stok {data.stock_condition === 'good' ? 'baik' : 'rusak'} tersedia: <strong>{availableQuantity}</strong> {selectedProduct.base_unit}
+                            </p>
+                        )}
+                        {hasNoAvailableStock && (
+                            <p className="rounded-xl bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                                Stok {data.stock_condition === 'good' ? 'baik' : 'rusak'} barang ini 0. Pilih barang lain atau catat barang masuk terlebih dahulu.
                             </p>
                         )}
 
@@ -234,11 +247,12 @@ export default function OutboundCreate({ products }: Props) {
                                     type="number"
                                     inputMode="numeric"
                                     min="1"
-                                    max={maxQty}
+                                    max={availableQuantity > 0 ? availableQuantity : undefined}
                                     step="1"
                                     value={data.quantity}
                                     onChange={(e) => setData('quantity', e.target.value)}
-                                    placeholder="0"
+                                    placeholder={hasNoAvailableStock ? 'Stok habis' : '0'}
+                                    disabled={hasNoAvailableStock || !selectedProduct}
                                     className={inputClass(errors.quantity)}
                                     required
                                 />
@@ -289,7 +303,7 @@ export default function OutboundCreate({ products }: Props) {
 
                     <button
                         type="submit"
-                        disabled={processing}
+                        disabled={processing || hasNoAvailableStock || !selectedProduct}
                         className="flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 py-3.5 text-base font-semibold text-white shadow-md disabled:opacity-60"
                     >
                         {processing && <Loader2 className="h-4 w-4 animate-spin" />}

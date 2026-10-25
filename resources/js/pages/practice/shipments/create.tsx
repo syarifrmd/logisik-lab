@@ -14,7 +14,7 @@ import {
     Plus,
     Trash2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import PracticeLayout from '@/layouts/practice/practice-layout';
 import { formatRp, generateUuid } from '@/lib/format';
 import type { Product } from '@/types';
@@ -40,6 +40,7 @@ type AvailableOutbound = {
 type Props = {
     availableOutbounds: AvailableOutbound[];
     products: Array<Pick<Product, 'id' | 'code' | 'name' | 'category' | 'base_unit' | 'stock_good'>>;
+    initialOutboundId?: number | null;
 };
 
 type ItemInput = {
@@ -53,7 +54,16 @@ type ItemInput = {
     max_qty?: number;
 };
 
-export default function ShipmentCreate({ availableOutbounds, products }: Props) {
+const shipmentTypes: Array<{
+    val: 'domestic' | 'export' | 'import';
+    label: string;
+}> = [
+    { val: 'domestic', label: 'Domestik' },
+    { val: 'export', label: 'Ekspor' },
+    { val: 'import', label: 'Impor' },
+];
+
+export default function ShipmentCreate({ availableOutbounds, products, initialOutboundId }: Props) {
     const { errors } = usePage().props as { errors: Record<string, string> };
     const [currentStep, setCurrentStep] = useState(1);
 
@@ -98,6 +108,17 @@ export default function ShipmentCreate({ availableOutbounds, products }: Props) 
             if (!data.destination && tx.recipient) {
                 setData('destination', tx.recipient);
             }
+
+            useEffect(() => {
+                if (initialOutboundId === null || initialOutboundId === undefined || data.items.length > 0) {
+                    return;
+                }
+
+                const outbound = availableOutbounds.find((tx) => tx.id === initialOutboundId);
+                if (outbound) {
+                    handleToggleOutbound(outbound);
+                }
+            }, [initialOutboundId, availableOutbounds]);
             setData('items', [
                 ...data.items,
                 {
@@ -188,22 +209,17 @@ export default function ShipmentCreate({ availableOutbounds, products }: Props) 
                             <div className="space-y-1">
                                 <label className="text-xs font-semibold text-muted-foreground">Jenis Pengiriman *</label>
                                 <div className="grid grid-cols-3 gap-2">
-                                    {[
-                                        { val: 'domestic', label: 'Domestik' },
-                                        { val: 'export', label: 'Ekspor' },
-                                        { val: 'import', label: 'Impor' },
-                                    ].map((t) => (
+                                    {shipmentTypes.map((t) => (
                                         <button
                                             key={t.val}
                                             type="button"
                                             onClick={() => {
-                                                const type = t.val as any;
                                                 setData((prev) => ({
                                                     ...prev,
-                                                    shipment_type: type,
+                                                    shipment_type: t.val,
                                                     items: [], // reset items on type switch
-                                                    origin_country: type === 'import' ? 'Tiongkok' : 'Indonesia',
-                                                    destination_country: type === 'export' ? 'Singapura' : 'Indonesia',
+                                                    origin_country: t.val === 'import' ? 'Tiongkok' : 'Indonesia',
+                                                    destination_country: t.val === 'export' ? 'Singapura' : 'Indonesia',
                                                 }));
                                             }}
                                             className={`rounded-xl border py-2 text-xs font-bold transition-all ${
@@ -309,7 +325,7 @@ export default function ShipmentCreate({ availableOutbounds, products }: Props) 
                                                 onChange={(e) => setData('incoterms', e.target.value.toUpperCase())}
                                                 className="w-full rounded-lg border border-input bg-background p-2 text-xs font-mono uppercase"
                                                 placeholder="FOB / CIF / EXW"
-                                                required={data.shipment_type !== 'domestic'}
+                                                required
                                             />
                                         </div>
                                         <div className="space-y-1">

@@ -104,6 +104,7 @@ class ShipmentController extends Controller
         return Inertia::render('practice/shipments/create', [
             'availableOutbounds' => $availableOutbounds,
             'products' => $products,
+            'initialOutboundId' => $request->integer('outbound_id') ?: null,
         ]);
     }
 

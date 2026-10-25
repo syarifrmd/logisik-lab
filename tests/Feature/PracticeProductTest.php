@@ -128,6 +128,76 @@ test('user can archive and reactivate a product', function () {
     $this->assertNull($product->fresh()->archived_at);
 });
 
+test('user can delete a product without transactions', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $workspace = app(WorkspaceService::class)->getOrCreateForUser($user);
+    $product = Product::create([
+        'workspace_id' => $workspace->id,
+        'code' => 'BRG010',
+        'name' => 'Produk Hapus',
+        'category' => 'ATK',
+        'base_unit' => 'pcs',
+        'cost_price' => 1000,
+        'selling_price' => 1500,
+        'stock_good' => 0,
+        'stock_damaged' => 0,
+    ]);
+
+    $response = $this->delete(route('practice.products.destroy', $product));
+
+    $response->assertRedirect(route('practice.products.index'));
+    $this->assertDatabaseMissing('products', ['id' => $product->id]);
+});
+
+test('product with transactions cannot be deleted', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $response = $this->post(route('practice.products.store'), [
+        'code' => 'BRG011',
+        'name' => 'Produk Bertransaksi',
+        'category' => 'ATK',
+        'base_unit' => 'pcs',
+        'cost_price' => 1000,
+        'selling_price' => 1500,
+        'stock_good' => 1,
+        'stock_date' => now()->toDateString(),
+    ]);
+
+    $product = Product::where('code', 'BRG011')->firstOrFail();
+    $deleteResponse = $this->delete(route('practice.products.destroy', $product));
+
+    $deleteResponse->assertRedirect();
+    $deleteResponse->assertSessionHasErrors('delete');
+    $this->assertDatabaseHas('products', ['id' => $product->id]);
+});
+
+test('product with remaining stock cannot be deleted', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $workspace = app(WorkspaceService::class)->getOrCreateForUser($user);
+    $product = Product::create([
+        'workspace_id' => $workspace->id,
+        'code' => 'BRG012',
+        'name' => 'Produk Masih Stok',
+        'category' => 'ATK',
+        'base_unit' => 'pcs',
+        'cost_price' => 1000,
+        'selling_price' => 1500,
+        'stock_good' => 2,
+        'stock_damaged' => 1,
+    ]);
+
+    $response = $this->delete(route('practice.products.destroy', $product));
+
+    $response->assertRedirect();
+    $response->assertSessionHasErrors('delete');
+    $this->assertDatabaseHas('products', ['id' => $product->id]);
+});
+
 test('user can create inbound transaction and increase stock', function () {
     $user = User::factory()->create();
     $this->actingAs($user);

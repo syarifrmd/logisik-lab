@@ -1,12 +1,14 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { ChevronLeft, Loader2 } from 'lucide-react';
+import { Camera, ChevronLeft, Loader2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import PracticeLayout from '@/layouts/practice/practice-layout';
 import practice from '@/routes/practice';
+import BarcodeScannerModal from '@/components/practice/barcode-scanner-modal';
 
 type Props = {
     suggestedCode: string;
     categories: string[];
+    barcodeMode: 'automatic' | 'existing';
 };
 
 type FormData = {
@@ -22,7 +24,7 @@ type FormData = {
     photo: File | null;
 };
 
-export default function ProductCreate({ suggestedCode, categories }: Props) {
+export default function ProductCreate({ suggestedCode, categories, barcodeMode }: Props) {
     const { errors } = usePage().props as { errors: Record<string, string> };
     const { data, setData, post, processing } = useForm<FormData>({
         code: suggestedCode,
@@ -40,6 +42,8 @@ export default function ProductCreate({ suggestedCode, categories }: Props) {
     const [categoryInput, setCategoryInput] = useState('');
     const [showCatList, setShowCatList] = useState(false);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const [codeMode, setCodeMode] = useState<'automatic' | 'existing'>(barcodeMode);
+    const [scannerOpen, setScannerOpen] = useState(false);
     const fileRef = useRef<HTMLInputElement>(null);
 
     const filteredCats = categories.filter((c) =>
@@ -77,6 +81,11 @@ export default function ProductCreate({ suggestedCode, categories }: Props) {
         });
     }
 
+    function handleCodeModeChange(mode: 'automatic' | 'existing') {
+        setCodeMode(mode);
+        setData('code', mode === 'automatic' ? suggestedCode : '');
+    }
+
     return (
         <PracticeLayout title="Tambah Barang">
             <div className="space-y-4">
@@ -93,14 +102,49 @@ export default function ProductCreate({ suggestedCode, categories }: Props) {
                     <section className="rounded-2xl bg-card p-4 shadow-sm space-y-3">
                         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Info Dasar</h2>
 
-                        <Field label="Kode Barang" hint="Kosongkan untuk dibuat otomatis" error={errors.code}>
+                        <Field label="Barcode Produk *" error={errors.code}>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => handleCodeModeChange('automatic')}
+                                    className={`rounded-xl border px-3 py-2.5 text-left text-xs transition-colors ${codeMode === 'automatic' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-background text-muted-foreground'}`}
+                                >
+                                    <span className="block font-semibold">Buat otomatis</span>
+                                    <span className="mt-0.5 block text-[10px]">Kode {suggestedCode}</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleCodeModeChange('existing')}
+                                    className={`rounded-xl border px-3 py-2.5 text-left text-xs transition-colors ${codeMode === 'existing' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-background text-muted-foreground'}`}
+                                >
+                                    <span className="block font-semibold">Barcode sudah ada</span>
+                                    <span className="mt-0.5 block text-[10px]">Masukkan kode fisik</span>
+                                </button>
+                            </div>
                             <input
                                 type="text"
                                 value={data.code}
                                 onChange={(e) => setData('code', e.target.value.toUpperCase())}
-                                placeholder={suggestedCode}
+                                placeholder={codeMode === 'automatic' ? suggestedCode : 'Contoh: 8991234567890'}
+                                readOnly={codeMode === 'automatic'}
                                 className={inputClass(errors.code)}
+                                required
                             />
+                            {codeMode === 'existing' && (
+                                <button
+                                    type="button"
+                                    onClick={() => setScannerOpen(true)}
+                                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2.5 text-xs font-semibold text-primary hover:bg-primary/10"
+                                >
+                                    <Camera className="h-4 w-4" />
+                                    Scan Barcode dari Produk
+                                </button>
+                            )}
+                            <p className="text-xs text-muted-foreground">
+                                {codeMode === 'automatic'
+                                    ? 'Sistem membuat barcode Code 128 baru untuk barang ini.'
+                                    : 'Masukkan angka/huruf yang tercetak pada barcode produk. Kode harus unik.'}
+                            </p>
                         </Field>
 
                         <Field label="Nama Barang *" error={errors.name}>
@@ -278,6 +322,13 @@ export default function ProductCreate({ suggestedCode, categories }: Props) {
                     <div className="pb-4" />
                 </form>
             </div>
+            <BarcodeScannerModal
+                open={scannerOpen}
+                onClose={() => setScannerOpen(false)}
+                onSelectProduct={() => undefined}
+                onCodeDetected={(code) => setData('code', code)}
+                title="Scan Barcode Produk"
+            />
         </PracticeLayout>
     );
 }

@@ -50,4 +50,30 @@ class CatalogController extends Controller
             'filters' => $request->only(['search', 'category', 'per_page']),
         ]);
     }
+
+    /**
+     * Display the brochure generator for the selected products.
+     */
+    public function brochure(Request $request): Response
+    {
+        $workspace = $this->workspace($request);
+        $productIds = collect($request->input('products', []))
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        $products = Product::where('workspace_id', $workspace->id)
+            ->whereNull('archived_at')
+            ->whereIn('id', $productIds)
+            ->orderBy('name')
+            ->get([
+                'id', 'code', 'name', 'category', 'specification', 'base_unit',
+                'selling_price', 'photo_path', 'stock_good',
+            ]);
+
+        return Inertia::render('practice/catalog/brochure', [
+            'products' => $products,
+        ]);
+    }
 }

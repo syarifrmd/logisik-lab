@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Practice;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class StoreProductRequest extends FormRequest
@@ -20,7 +21,14 @@ class StoreProductRequest extends FormRequest
         $workspaceId = $this->user()?->workspace?->id;
 
         return [
-            'code' => ['nullable', 'string', 'min:3', 'max:32', 'regex:/^[A-Z0-9-]+$/'],
+            'code' => [
+                'nullable',
+                'string',
+                'min:3',
+                'max:32',
+                'regex:/^[A-Z0-9-]+$/',
+                Rule::unique('products', 'code')->where('workspace_id', $workspaceId),
+            ],
             'name' => ['required', 'string', 'min:2', 'max:150'],
             'category' => ['required', 'string', 'min:2', 'max:80'],
             'specification' => ['nullable', 'string', 'max:500'],
@@ -41,6 +49,7 @@ class StoreProductRequest extends FormRequest
         return [
             'code.regex' => 'Kode hanya boleh berisi huruf besar, angka, dan tanda hubung.',
             'code.min' => 'Kode minimal 3 karakter.',
+            'code.unique' => 'Barcode/kode tersebut sudah digunakan barang lain di ruang praktik ini.',
             'name.required' => 'Nama barang wajib diisi.',
             'name.min' => 'Nama barang minimal 2 karakter.',
             'category.required' => 'Kategori wajib diisi.',

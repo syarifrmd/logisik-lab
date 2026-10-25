@@ -343,46 +343,46 @@ class ReportService
             // 2. Initial stock of products created within the period
             $initialGood = (int) InventoryMovement::where('product_id', $p->id)
                 ->where('stock_condition', 'good')
-                ->where('reference_type', 'opening')
+                ->whereHas('stockTransaction', fn ($q) => $q->where('type', 'opening'))
                 ->whereBetween('effective_date', [$startDate, $endDate])
                 ->sum('quantity_delta');
 
             // 3. Inbound during period
             $inboundGood = (int) InventoryMovement::where('product_id', $p->id)
                 ->where('stock_condition', 'good')
-                ->where('reference_type', 'inbound')
+                ->whereHas('stockTransaction', fn ($q) => $q->where('type', 'inbound'))
                 ->whereBetween('effective_date', [$startDate, $endDate])
                 ->sum('quantity_delta');
 
             $inboundDamaged = (int) InventoryMovement::where('product_id', $p->id)
                 ->where('stock_condition', 'damaged')
-                ->where('reference_type', 'inbound')
+                ->whereHas('stockTransaction', fn ($q) => $q->where('type', 'inbound'))
                 ->whereBetween('effective_date', [$startDate, $endDate])
                 ->sum('quantity_delta');
 
             // 4. Outbound during period
             $outboundGood = (int) abs(InventoryMovement::where('product_id', $p->id)
                 ->where('stock_condition', 'good')
-                ->where('reference_type', 'outbound')
+                ->whereHas('stockTransaction', fn ($q) => $q->where('type', 'outbound'))
                 ->whereBetween('effective_date', [$startDate, $endDate])
                 ->sum('quantity_delta'));
 
             $outboundDamaged = (int) abs(InventoryMovement::where('product_id', $p->id)
                 ->where('stock_condition', 'damaged')
-                ->where('reference_type', 'outbound')
+                ->whereHas('stockTransaction', fn ($q) => $q->where('type', 'outbound'))
                 ->whereBetween('effective_date', [$startDate, $endDate])
                 ->sum('quantity_delta'));
 
             // 5. Reversals (void)
             $reversalGood = (int) InventoryMovement::where('product_id', $p->id)
                 ->where('stock_condition', 'good')
-                ->where('reference_type', 'reversal')
+                ->where('movement_kind', 'reversal')
                 ->whereBetween('effective_date', [$startDate, $endDate])
                 ->sum('quantity_delta');
 
             $reversalDamaged = (int) InventoryMovement::where('product_id', $p->id)
                 ->where('stock_condition', 'damaged')
-                ->where('reference_type', 'reversal')
+                ->where('movement_kind', 'reversal')
                 ->whereBetween('effective_date', [$startDate, $endDate])
                 ->sum('quantity_delta');
 

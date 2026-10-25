@@ -17,6 +17,8 @@ type FormData = {
     base_unit: string;
     cost_price: string;
     selling_price: string;
+    stock_good: string;
+    stock_damaged: string;
     photo: File | null;
     _method: string;
 };
@@ -30,6 +32,8 @@ export default function ProductEdit({ product, categories }: Props) {
         base_unit: product.base_unit,
         cost_price: product.cost_price,
         selling_price: product.selling_price,
+        stock_good: String(product.stock_good),
+        stock_damaged: String(product.stock_damaged),
         photo: null,
         _method: 'PUT',
     });
@@ -69,14 +73,14 @@ export default function ProductEdit({ product, categories }: Props) {
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        post(practice.products.update.url({ barang: product.id }), { forceFormData: true });
+        post(practice.products.update.url({ product: product.id }), { forceFormData: true });
     }
 
     return (
         <PracticeLayout title={`Edit: ${product.name}`}>
             <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                    <Link href={practice.products.show.url({ barang: product.id })} className="rounded-lg p-1.5 hover:bg-muted">
+                    <Link href={practice.products.show.url({ product: product.id })} className="rounded-lg p-1.5 hover:bg-muted">
                         <ChevronLeft className="h-5 w-5" />
                     </Link>
                     <h1 className="flex-1 truncate text-lg font-bold">Edit Barang</h1>
@@ -141,6 +145,22 @@ export default function ProductEdit({ product, categories }: Props) {
                                 className={inputClass(errors.specification)}
                             />
                         </Field>
+                    </section>
+
+                    {/* Stok */}
+                    <section className="rounded-2xl bg-card p-4 shadow-sm space-y-3">
+                        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Stok</h2>
+                        <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                            Perubahan stok manual sebaiknya dilakukan setelah memastikan jumlah fisik barang.
+                        </p>
+                        <div className="grid grid-cols-2 gap-3">
+                            <Field label="Stok Baik *" error={errors.stock_good}>
+                                <input type="number" min="0" step="1" value={data.stock_good} onChange={(e) => setData('stock_good', e.target.value)} className={inputClass(errors.stock_good)} required />
+                            </Field>
+                            <Field label="Stok Rusak *" error={errors.stock_damaged}>
+                                <input type="number" min="0" step="1" value={data.stock_damaged} onChange={(e) => setData('stock_damaged', e.target.value)} className={inputClass(errors.stock_damaged)} required />
+                            </Field>
+                        </div>
                     </section>
 
                     {/* Harga */}
