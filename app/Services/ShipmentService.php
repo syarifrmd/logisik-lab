@@ -12,8 +12,8 @@ use App\Models\ShipmentStatusHistory;
 use App\Models\StockTransaction;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpKernel\Exception\ConflictException;
-use Symfony\Component\HttpKernel\Exception\UnprocessableEntityException;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class ShipmentService
 {
@@ -93,7 +93,7 @@ class ShipmentService
     private function saveShipmentItems(PracticeWorkspace $workspace, Shipment $shipment, array $items): void
     {
         if (empty($items)) {
-            throw new UnprocessableEntityException('Pengiriman harus memiliki minimal satu barang.');
+            throw new UnprocessableEntityHttpException('Pengiriman harus memiliki minimal satu barang.');
         }
 
         if ($shipment->shipment_type === 'import') {
@@ -130,14 +130,14 @@ class ShipmentService
             foreach ($items as $item) {
                 $txId = $item['stock_transaction_id'];
                 if (! isset($outbounds[$txId])) {
-                    throw new UnprocessableEntityException("Transaksi keluar #{$txId} tidak valid atau sudah dibatalkan.");
+                    throw new UnprocessableEntityHttpException("Transaksi keluar #{$txId} tidak valid atau sudah dibatalkan.");
                 }
 
                 $tx = $outbounds[$txId];
                 $qty = (int) $item['quantity'];
 
                 if ($qty <= 0) {
-                    throw new UnprocessableEntityException('Jumlah alokasi barang harus lebih dari 0.');
+                    throw new UnprocessableEntityHttpException('Jumlah alokasi barang harus lebih dari 0.');
                 }
 
                 // Check remaining unallocated quantity
@@ -150,7 +150,7 @@ class ShipmentService
 
                 $available = $tx->quantity - $alreadyAllocated;
                 if ($qty > $available) {
-                    throw new UnprocessableEntityException(
+                    throw new UnprocessableEntityHttpException(
                         "Jumlah alokasi ({$qty}) melebihi sisa kuantitas transaksi keluar {$tx->transaction_number} (Tersisa: {$available} {$tx->product_snapshot['base_unit']})."
                     );
                 }
@@ -182,31 +182,31 @@ class ShipmentService
                 ->firstOrFail();
 
             if ($locked->status === 'cancelled') {
-                throw new ConflictException('Pengiriman yang sudah dibatalkan tidak dapat diubah statusnya.');
+                throw new ConflictHttpException('Pengiriman yang sudah dibatalkan tidak dapat diubah statusnya.');
             }
 
             $current = $locked->status;
 
             if ($current === 'scheduled' && $newStatus === 'shipped') {
                 if ($locked->shipping_date->isFuture()) {
-                    throw new UnprocessableEntityException('Pengiriman belum dapat diberangkatkan karena tanggal pengiriman berada di masa depan.');
+                    throw new UnprocessableEntityHttpException('Pengiriman belum dapat diberangkatkan karena tanggal pengiriman berada di masa depan.');
                 }
             } elseif ($current === 'shipped' && $newStatus === 'in_transit') {
                 // valid
             } elseif ($current === 'in_transit' && $newStatus === 'received') {
                 if (! $receivedDate) {
-                    throw new UnprocessableEntityException('Tanggal diterima wajib diisi saat status Diterima.');
+                    throw new UnprocessableEntityHttpException('Tanggal diterima wajib diisi saat status Diterima.');
                 }
                 $rDate = Carbon::parse($receivedDate);
                 if ($rDate->lt($locked->shipping_date)) {
-                    throw new UnprocessableEntityException('Tanggal diterima tidak boleh lebih awal dari tanggal pengiriman.');
+                    throw new UnprocessableEntityHttpException('Tanggal diterima tidak boleh lebih awal dari tanggal pengiriman.');
                 }
                 if ($rDate->isFuture()) {
-                    throw new UnprocessableEntityException('Tanggal diterima tidak boleh di masa depan.');
+                    throw new UnprocessableEntityHttpException('Tanggal diterima tidak boleh di masa depan.');
                 }
                 $locked->received_date = $rDate;
             } else {
-                throw new UnprocessableEntityException("Transisi status dari {$current} ke {$newStatus} tidak diizinkan.");
+                throw new UnprocessableEntityHttpException("Transisi status dari {$current} ke {$newStatus} tidak diizinkan.");
             }
 
             $locked->status = $newStatus;
@@ -235,7 +235,7 @@ class ShipmentService
                 ->firstOrFail();
 
             if ($locked->status !== 'scheduled') {
-                throw new ConflictException('Hanya pengiriman berstatus Dijadwalkan yang dapat dibatalkan.');
+                throw new ConflictHttpException('Hanya pengiriman berstatus Dijadwalkan yang dapat dibatalkan.');
             }
 
             $locked->status = 'cancelled';

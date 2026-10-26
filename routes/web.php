@@ -1,23 +1,37 @@
 <?php
 
+use App\Http\Controllers\Admin\ClassroomController;
+use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Practice\BarcodeController;
 use App\Http\Controllers\Practice\CatalogController;
+use App\Http\Controllers\Practice\ClassroomEnrollmentController;
 use App\Http\Controllers\Practice\HomeController;
 use App\Http\Controllers\Practice\InboundController;
 use App\Http\Controllers\Practice\OutboundController;
 use App\Http\Controllers\Practice\ProductController;
 use App\Http\Controllers\Practice\ReportController;
 use App\Http\Controllers\Practice\ShipmentController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
 
 // Legacy dashboard redirects to practice home
-Route::redirect('/dashboard', '/praktik')->middleware('auth');
+Route::get('/dashboard', fn (Request $request) => redirect($request->user()->isAdmin() ? route('admin.dashboard', absolute: false) : '/praktik'))->middleware('auth')->name('dashboard');
+
+Route::middleware(['auth', 'teacher'])->prefix('admin')->name('admin.')->group(function (): void {
+    Route::get('/', [ClassroomController::class, 'index'])->name('dashboard');
+    Route::post('kelas', [ClassroomController::class, 'store'])->name('classrooms.store');
+    Route::get('kelas/{classroom}', [ClassroomController::class, 'show'])->name('classrooms.show');
+    Route::patch('kelas/{classroom}', [ClassroomController::class, 'update'])->name('classrooms.update');
+    Route::post('kelas/{classroom}/siswa', [StudentController::class, 'store'])->name('classrooms.students.store');
+    Route::get('siswa/{student}', [StudentController::class, 'show'])->name('students.show');
+});
 
 Route::middleware(['auth', 'workspace'])->prefix('praktik')->name('practice.')->group(function () {
     // Beranda
     Route::get('/', [HomeController::class, 'index'])->name('home');
+    Route::post('kelas', [ClassroomEnrollmentController::class, 'store'])->name('classroom.join');
 
     // Data Barang
     Route::get('barang/{product}/foto', [ProductController::class, 'photo'])->name('products.photo');

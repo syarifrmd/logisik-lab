@@ -1,4 +1,6 @@
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
+import StudentClassroomCard from '@/components/student-classroom-card';
+import type { Classroom } from '@/types/classroom';
 import { Package, ArrowDownToLine, ArrowUpFromLine, Boxes } from 'lucide-react';
 import PracticeLayout from '@/layouts/practice/practice-layout';
 
@@ -13,9 +15,10 @@ type Stats = {
 
 type Props = {
     stats: Stats;
+    classrooms: Classroom[];
 };
 
-export default function PracticeHome({ stats }: Props) {
+export default function PracticeHome({ stats, classrooms }: Props) {
     const statCards = [
         {
             label: 'Jumlah Barang',
@@ -53,24 +56,35 @@ export default function PracticeHome({ stats }: Props) {
 
     const quickActions = [
         { label: 'Data Barang', href: '/praktik/barang', icon: Package },
-        { label: 'Barang Masuk', href: '/praktik/barang-masuk', icon: ArrowDownToLine },
-        { label: 'Barang Keluar', href: '/praktik/barang-keluar', icon: ArrowUpFromLine },
+        {
+            label: 'Barang Masuk',
+            href: '/praktik/barang-masuk',
+            icon: ArrowDownToLine,
+        },
+        {
+            label: 'Barang Keluar',
+            href: '/praktik/barang-keluar',
+            icon: ArrowUpFromLine,
+        },
     ];
 
     return (
         <PracticeLayout title="Beranda">
             <div className="space-y-6">
+                <StudentClassroomCard classrooms={classrooms} />
                 {/* Welcome */}
                 <div className="rounded-xl bg-card p-5 shadow-sm">
                     <h1 className="text-xl font-bold text-foreground">
                         Selamat Datang di LOGISTIK LAB
                     </h1>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        Latih keterampilanmu dalam pencatatan dan pengelolaan barang, mulai dari gudang hingga pengiriman.
+                        Latih keterampilanmu dalam pencatatan dan pengelolaan
+                        barang, mulai dari gudang hingga pengiriman.
                     </p>
                     <div className="mt-3 rounded-lg bg-primary/5 px-3 py-2">
                         <p className="text-xs text-muted-foreground">
-                            Hasil praktik tersimpan di akunmu dan dapat dilanjutkan dari perangkat lain.
+                            Hasil praktik tersimpan di akunmu dan dapat
+                            dilanjutkan dari perangkat lain.
                         </p>
                     </div>
                 </div>
@@ -118,7 +132,7 @@ export default function PracticeHome({ stats }: Props) {
                                     className="flex flex-col items-center gap-2 rounded-xl bg-card p-4 shadow-sm transition-colors hover:bg-accent"
                                 >
                                     <Icon className="h-6 w-6 text-primary" />
-                                    <span className="text-xs font-medium text-center">
+                                    <span className="text-center text-xs font-medium">
                                         {action.label}
                                     </span>
                                 </Link>

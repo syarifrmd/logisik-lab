@@ -9,12 +9,13 @@ use App\Models\Product;
 use App\Services\BarcodeService;
 use App\Services\NumberingService;
 use App\Services\StockService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Symfony\Component\HttpKernel\Exception\ConflictException;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 class ProductController extends Controller
 {
@@ -108,7 +109,7 @@ class ProductController extends Controller
     /**
      * Store a newly created product with optional opening balance.
      */
-    public function store(StoreProductRequest $request)
+    public function store(StoreProductRequest $request): RedirectResponse
     {
         $workspace = $this->workspace($request);
         $validated = $request->validated();
@@ -123,7 +124,7 @@ class ProductController extends Controller
 
             return redirect()->route('practice.products.show', $product)
                 ->with('toast', ['type' => 'success', 'message' => 'Barang berhasil dibuat.']);
-        } catch (ConflictException $e) {
+        } catch (ConflictHttpException $e) {
             return back()->withErrors(['code' => $e->getMessage()])
                 ->withInput();
         }
@@ -195,7 +196,7 @@ class ProductController extends Controller
     /**
      * Update the specified product.
      */
-    public function update(UpdateProductRequest $request, Product $product)
+    public function update(UpdateProductRequest $request, Product $product): RedirectResponse
     {
         $workspace = $this->workspace($request);
 
@@ -221,7 +222,7 @@ class ProductController extends Controller
     /**
      * Remove the specified product (only if no transactions).
      */
-    public function destroy(Request $request, Product $product)
+    public function destroy(Request $request, Product $product): RedirectResponse
     {
         $workspace = $this->workspace($request);
 
@@ -260,7 +261,7 @@ class ProductController extends Controller
     /**
      * Archive the specified product.
      */
-    public function archive(Request $request, Product $product)
+    public function archive(Request $request, Product $product): RedirectResponse
     {
         $workspace = $this->workspace($request);
 
@@ -276,7 +277,7 @@ class ProductController extends Controller
     /**
      * Reactivate an archived product.
      */
-    public function reactivate(Request $request, Product $product)
+    public function reactivate(Request $request, Product $product): RedirectResponse
     {
         $workspace = $this->workspace($request);
 

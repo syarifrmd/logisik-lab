@@ -8,6 +8,7 @@ use App\Models\PracticeWorkspace;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
 class CreateNewUser implements CreatesNewUsers
@@ -24,6 +25,10 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             ...$this->profileRules(),
             'password' => $this->passwordRules(),
+            'classroom_id' => ['required', 'integer', Rule::exists('classrooms', 'id')->where('is_active', true)->whereNotNull('teacher_id')],
+        ], [
+            'classroom_id.required' => 'Pilih kelas yang diberikan guru.',
+            'classroom_id.exists' => 'Kelas tidak tersedia untuk pendaftaran.',
         ])->validate();
 
         return DB::transaction(function () use ($input): User {
@@ -31,6 +36,7 @@ class CreateNewUser implements CreatesNewUsers
                 'name' => $input['name'],
                 'email' => $input['email'],
                 'password' => $input['password'],
+                'classroom_id' => $input['classroom_id'],
             ]);
 
             // Create the practice workspace atomically with the user

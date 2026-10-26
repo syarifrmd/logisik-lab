@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Database\Factories\PracticeWorkspaceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -25,6 +27,9 @@ use Illuminate\Support\Carbon;
 #[Hidden([])]
 class PracticeWorkspace extends Model
 {
+    /** @use HasFactory<PracticeWorkspaceFactory> */
+    use HasFactory;
+
     protected $guarded = [];
 
     /**
@@ -42,7 +47,7 @@ class PracticeWorkspace extends Model
      */
     public function products(): HasMany
     {
-        return $this->hasMany(Product::class);
+        return $this->hasMany(Product::class, 'workspace_id');
     }
 
     /**
@@ -50,7 +55,7 @@ class PracticeWorkspace extends Model
      */
     public function stockTransactions(): HasMany
     {
-        return $this->hasMany(StockTransaction::class);
+        return $this->hasMany(StockTransaction::class, 'workspace_id');
     }
 
     /**
@@ -58,7 +63,13 @@ class PracticeWorkspace extends Model
      */
     public function inventoryMovements(): HasMany
     {
-        return $this->hasMany(InventoryMovement::class);
+        return $this->hasMany(InventoryMovement::class, 'workspace_id');
+    }
+
+    /** @return HasMany<Shipment, $this> */
+    public function shipments(): HasMany
+    {
+        return $this->hasMany(Shipment::class, 'workspace_id');
     }
 
     protected function casts(): array

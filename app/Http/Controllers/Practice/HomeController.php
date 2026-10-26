@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Practice;
 
 use App\Enums\TransactionType;
 use App\Http\Controllers\Controller;
+use App\Models\Classroom;
 use App\Models\Product;
 use App\Models\StockTransaction;
 use Illuminate\Http\Request;
@@ -44,6 +45,9 @@ class HomeController extends Controller
 
         return Inertia::render('practice/home', [
             'stats' => $stats,
+            'classrooms' => $request->user()->classroom_id === null
+                ? Classroom::where('is_active', true)->whereNotNull('teacher_id')->with('teacher:id,name')->orderBy('name')->get(['id', 'teacher_id', 'name', 'academic_year', 'code'])
+                : [],
         ]);
     }
 }

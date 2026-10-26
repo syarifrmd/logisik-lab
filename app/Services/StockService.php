@@ -14,8 +14,8 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpKernel\Exception\ConflictException;
-use Symfony\Component\HttpKernel\Exception\UnprocessableEntityException;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class StockService
 {
@@ -111,7 +111,7 @@ class StockService
      * @param  array<string, mixed>  $data
      *
      * @throws ValidationException When stock would go negative
-     * @throws ConflictException On idempotency conflict
+     * @throws ConflictHttpException On idempotency conflict
      */
     public function postInbound(PracticeWorkspace $workspace, array $data): StockTransaction
     {
@@ -151,7 +151,7 @@ class StockService
             if ($existing->request_hash === $requestHash) {
                 return $existing;
             }
-            throw new ConflictException(
+            throw new ConflictHttpException(
                 'Token idempotensi telah digunakan dengan payload yang berbeda.'
             );
         }
@@ -164,7 +164,7 @@ class StockService
                 ->firstOrFail();
 
             if ($product->archived_at !== null) {
-                throw new UnprocessableEntityException(
+                throw new UnprocessableEntityHttpException(
                     'Barang telah diarsipkan dan tidak dapat dipakai untuk transaksi baru.'
                 );
             }
@@ -176,7 +176,7 @@ class StockService
             if ($type === TransactionType::Outbound) {
                 $available = $product->stockForCondition($condition);
                 if ($quantity > $available) {
-                    throw new ConflictException(
+                    throw new ConflictHttpException(
                         "Stok tersedia saat ini {$available} {$product->base_unit}. Sesuaikan jumlah barang keluar."
                     );
                 }
@@ -185,7 +185,7 @@ class StockService
             // Validate transaction date (INV-06)
             $date = Carbon::parse($data['transaction_date']);
             if ($date->isFuture()) {
-                throw new UnprocessableEntityException(
+                throw new UnprocessableEntityHttpException(
                     'Tanggal transaksi tidak boleh melewati hari ini.'
                 );
             }
@@ -197,7 +197,7 @@ class StockService
                 ->first();
 
             if ($lastMovement !== null && $date->lt($lastMovement->effective_date)) {
-                throw new UnprocessableEntityException(
+                throw new UnprocessableEntityHttpException(
                     'Tanggal transaksi tidak boleh lebih awal dari transaksi terakhir produk ini.'
                 );
             }
@@ -215,7 +215,7 @@ class StockService
             // Check no negative stock (INV-05)
             $newStock = $product->{$stockColumn} + $delta;
             if ($newStock < 0) {
-                throw new ConflictException(
+                throw new ConflictHttpException(
                     'Stok tidak boleh negatif.'
                 );
             }
@@ -296,13 +296,13 @@ class StockService
                 ->firstOrFail();
 
             if ($transaction->voided_at !== null) {
-                throw new UnprocessableEntityException(
+                throw new UnprocessableEntityHttpException(
                     'Transaksi ini sudah dibatalkan.'
                 );
             }
 
             if ($transaction->type === TransactionType::Opening->value) {
-                throw new UnprocessableEntityException(
+                throw new UnprocessableEntityHttpException(
                     'Saldo awal tidak dapat dibatalkan melalui UI.'
                 );
             }
@@ -327,7 +327,7 @@ class StockService
             // Check no negative stock after reversal (for inbound void)
             $newStock = $product->{$stockColumn} + $reversalDelta;
             if ($newStock < 0) {
-                throw new ConflictException(
+                throw new ConflictHttpException(
                     'Pembatalan transaksi masuk ini akan membuat stok negatif.'
                 );
             }

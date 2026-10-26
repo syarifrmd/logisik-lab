@@ -1,4 +1,5 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
+import { dashboard as adminDashboard } from '@/routes/admin';
 import {
     LayoutGrid,
     Package,
@@ -67,13 +68,20 @@ const mainNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const isTeacher = usePage().props.auth.user.role === 'admin';
+    const navigation = isTeacher
+        ? [{ title: 'Kelas Saya', href: adminDashboard(), icon: LayoutGrid }]
+        : mainNavItems;
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href="/praktik" prefetch>
+                            <Link
+                                href={isTeacher ? adminDashboard() : '/praktik'}
+                                prefetch
+                            >
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
@@ -82,7 +90,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={navigation} />
             </SidebarContent>
 
             <SidebarFooter>

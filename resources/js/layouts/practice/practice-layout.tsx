@@ -17,7 +17,10 @@ export default function PracticeLayout({ title, children }: Props) {
             <Head title={title ?? 'Praktik'} />
             <div className="flex min-h-screen flex-col bg-muted/30">
                 {/* Mobile header */}
-                <PracticeHeader userName={userName} />
+                <PracticeHeader
+                    userName={userName}
+                    classroomName={auth?.user?.classroom?.name}
+                />
 
                 {/* Desktop sidebar */}
                 <div className="hidden lg:flex">
@@ -25,7 +28,7 @@ export default function PracticeLayout({ title, children }: Props) {
                 </div>
 
                 {/* Main content */}
-                <main className="mx-auto w-full max-w-4xl flex-1 px-4 pb-24 pt-4 lg:pb-8">
+                <main className="mx-auto w-full max-w-4xl flex-1 px-4 pt-4 pb-24 lg:pb-8">
                     {children}
                 </main>
 

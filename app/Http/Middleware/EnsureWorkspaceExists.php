@@ -23,10 +23,18 @@ class EnsureWorkspaceExists
     {
         $user = $request->user();
 
+        if ($user?->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+
         if ($user !== null && $user->workspace === null) {
             $this->workspaceService->getOrCreateForUser($user);
             // Refresh the user to load the new workspace relation
             $user->load('workspace');
+        }
+
+        if ($user?->workspace !== null && ($user->workspace->last_activity_at === null || $user->workspace->last_activity_at->lt(now()->subMinutes(5)))) {
+            $user->workspace->update(['last_activity_at' => now()]);
         }
 
         return $next($request);

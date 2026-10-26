@@ -17,8 +17,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Symfony\Component\HttpKernel\Exception\ConflictException;
-use Symfony\Component\HttpKernel\Exception\UnprocessableEntityException;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class ShipmentController extends Controller
 {
@@ -120,9 +120,9 @@ class ShipmentController extends Controller
 
             return redirect()->route('practice.shipments.show', $shipment)
                 ->with('toast', ['type' => 'success', 'message' => 'Pengiriman berhasil dijadwalkan.']);
-        } catch (ConflictException $e) {
+        } catch (ConflictHttpException $e) {
             return back()->withErrors(['store' => $e->getMessage()])->withInput();
-        } catch (UnprocessableEntityException $e) {
+        } catch (UnprocessableEntityHttpException $e) {
             return back()->withErrors(['store' => $e->getMessage()])->withInput();
         }
     }
@@ -170,7 +170,7 @@ class ShipmentController extends Controller
             );
 
             return back()->with('toast', ['type' => 'success', 'message' => 'Status pengiriman berhasil diperbarui.']);
-        } catch (ConflictException|UnprocessableEntityException $e) {
+        } catch (ConflictHttpException|UnprocessableEntityHttpException $e) {
             return back()->withErrors(['status' => $e->getMessage()]);
         }
     }
@@ -190,7 +190,7 @@ class ShipmentController extends Controller
             $this->shipmentService->cancelShipment($workspace, $shipment, $request->validated()['reason']);
 
             return back()->with('toast', ['type' => 'success', 'message' => 'Pengiriman berhasil dibatalkan.']);
-        } catch (ConflictException|UnprocessableEntityException $e) {
+        } catch (ConflictHttpException|UnprocessableEntityHttpException $e) {
             return back()->withErrors(['cancel' => $e->getMessage()]);
         }
     }

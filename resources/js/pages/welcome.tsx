@@ -1,14 +1,31 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { Boxes, ArrowRight, BookOpen, Truck, FileSpreadsheet } from 'lucide-react';
+import { Boxes, ArrowRight, Truck, FileSpreadsheet } from 'lucide-react';
+import { dashboard } from '@/routes';
 
 export default function Welcome() {
     const { auth } = usePage().props;
     const isLoggedIn = !!auth?.user;
+    const continueLabel =
+        auth?.user?.role === 'admin'
+            ? 'Buka Dashboard Guru'
+            : 'Lanjutkan Praktik';
 
     const features = [
-        { icon: Boxes, label: 'Kelola Barang & Stok', desc: 'Catat barang masuk dan keluar dengan akurat' },
-        { icon: Truck, label: 'Transportasi & Pengiriman', desc: 'Kelola moda, muatan, jadwal, dan dokumen' },
-        { icon: FileSpreadsheet, label: 'Laporan & Barcode', desc: 'Unduh laporan Excel dan buat barcode' },
+        {
+            icon: Boxes,
+            label: 'Kelola Barang & Stok',
+            desc: 'Catat barang masuk dan keluar dengan akurat',
+        },
+        {
+            icon: Truck,
+            label: 'Transportasi & Pengiriman',
+            desc: 'Kelola moda, muatan, jadwal, dan dokumen',
+        },
+        {
+            icon: FileSpreadsheet,
+            label: 'Laporan & Barcode',
+            desc: 'Unduh laporan Excel dan buat barcode',
+        },
     ];
 
     return (
@@ -22,10 +39,10 @@ export default function Welcome() {
                     </span>
                     {isLoggedIn ? (
                         <Link
-                            href="/praktik"
+                            href={dashboard()}
                             className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                         >
-                            Lanjutkan Praktik
+                            {continueLabel}
                         </Link>
                     ) : (
                         <div className="flex gap-3">
@@ -58,21 +75,25 @@ export default function Welcome() {
                         Website Praktik Manajemen Logistik
                     </p>
                     <p className="mt-4 max-w-lg text-sm text-muted-foreground">
-                        Latih keterampilanmu dalam pencatatan dan pengelolaan barang, mulai dari gudang hingga pengiriman.
+                        Latih keterampilanmu dalam pencatatan dan pengelolaan
+                        barang, mulai dari gudang hingga pengiriman.
                     </p>
 
                     <Link
-                        href={isLoggedIn ? '/praktik' : '/register'}
+                        href={isLoggedIn ? dashboard() : '/register'}
                         className="mt-8 inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-3.5 text-base font-semibold text-primary-foreground shadow-lg transition-all hover:bg-primary/90 hover:shadow-xl"
                     >
-                        {isLoggedIn ? 'Lanjutkan Praktik' : 'Mulai Praktik'}
+                        {isLoggedIn ? continueLabel : 'Mulai Praktik'}
                         <ArrowRight className="h-5 w-5" />
                     </Link>
 
                     {!isLoggedIn && (
                         <p className="mt-3 text-xs text-muted-foreground">
                             Belum punya akun?{' '}
-                            <Link href="/register" className="font-medium text-primary underline underline-offset-2">
+                            <Link
+                                href="/register"
+                                className="font-medium text-primary underline underline-offset-2"
+                            >
                                 Daftar di sini
                             </Link>
                         </p>
@@ -100,7 +121,8 @@ export default function Welcome() {
                     </div>
 
                     <p className="mt-8 text-xs text-muted-foreground">
-                        Hasil praktik tersimpan di akunmu dan dapat dilanjutkan dari perangkat lain.
+                        Hasil praktik tersimpan di akunmu dan dapat dilanjutkan
+                        dari perangkat lain.
                     </p>
                 </main>
 

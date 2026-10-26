@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Classroom;
 use Laravel\Fortify\Features;
 
 beforeEach(function () {
@@ -13,11 +14,13 @@ test('registration screen can be rendered', function () {
 });
 
 test('new users can register', function () {
+    $classroom = Classroom::factory()->create();
     $response = $this->post(route('register.store'), [
         'name' => 'Test User',
         'email' => 'test@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',
+        'classroom_id' => $classroom->id,
     ]);
 
     $this->assertAuthenticated();

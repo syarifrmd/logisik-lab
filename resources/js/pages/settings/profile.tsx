@@ -25,9 +25,29 @@ export default function Profile() {
             <div className="space-y-6">
                 <Heading
                     variant="small"
-                    title="Profil Siswa"
-                    description="Perbarui nama lengkap dan alamat email akun siswa Anda"
+                    title={
+                        auth.user.role === 'admin'
+                            ? 'Profil Guru'
+                            : 'Profil Siswa'
+                    }
+                    description="Perbarui nama lengkap dan alamat email akun Anda"
                 />
+
+                <div className="rounded-xl border bg-muted/30 p-4 text-sm">
+                    <p className="font-semibold">
+                        {auth.user.role === 'admin'
+                            ? 'Admin (Guru)'
+                            : 'User (Siswa)'}
+                    </p>
+                    {auth.user.role === 'student' && (
+                        <p className="mt-1 text-muted-foreground">
+                            Kelas:{' '}
+                            {auth.user.classroom
+                                ? `${auth.user.classroom.name} · ${auth.user.classroom.academic_year}`
+                                : 'Belum bergabung kelas'}
+                        </p>
+                    )}
+                </div>
 
                 <Form
                     {...ProfileController.update.form()}

@@ -50,6 +50,10 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
+        if ($user->isAdmin() && $user->teachingClassrooms()->exists()) {
+            return back()->withErrors(['password' => 'Akun guru yang masih mengelola kelas tidak dapat dihapus.']);
+        }
+
         Auth::logout();
 
         $user->delete();

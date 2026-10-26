@@ -1,4 +1,6 @@
 import { Form, Head } from '@inertiajs/react';
+import ClassroomSelect from '@/components/classroom-select';
+import type { Classroom } from '@/types/classroom';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
@@ -11,9 +13,10 @@ import { store } from '@/routes/register';
 
 type Props = {
     passwordRules: string;
+    classrooms: Classroom[];
 };
 
-export default function Register({ passwordRules }: Props) {
+export default function Register({ passwordRules, classrooms }: Props) {
     return (
         <>
             <Head title="Daftar" />
@@ -33,7 +36,6 @@ export default function Register({ passwordRules }: Props) {
                                     type="text"
                                     required
                                     autoFocus
-                                    tabIndex={1}
                                     autoComplete="name"
                                     name="name"
                                     placeholder="Nama lengkap siswa"
@@ -50,7 +52,6 @@ export default function Register({ passwordRules }: Props) {
                                     id="email"
                                     type="email"
                                     required
-                                    tabIndex={2}
                                     autoComplete="email"
                                     name="email"
                                     placeholder="email@example.com"
@@ -59,11 +60,24 @@ export default function Register({ passwordRules }: Props) {
                             </div>
 
                             <div className="grid gap-2">
+                                <Label htmlFor="classroom_id">Kelas *</Label>
+                                <ClassroomSelect
+                                    classrooms={classrooms}
+                                    required
+                                />
+                                <InputError message={errors.classroom_id} />
+                                <p className="text-xs text-muted-foreground">
+                                    {classrooms.length === 0
+                                        ? 'Belum ada kelas yang dibuka. Hubungi guru untuk membuat kelas terlebih dahulu.'
+                                        : 'Pilih kelas sesuai arahan guru. Data praktikmu akan terlihat oleh guru kelas ini.'}
+                                </p>
+                            </div>
+
+                            <div className="grid gap-2">
                                 <Label htmlFor="password">Kata Sandi</Label>
                                 <PasswordInput
                                     id="password"
                                     required
-                                    tabIndex={3}
                                     autoComplete="new-password"
                                     name="password"
                                     placeholder="Kata Sandi (minimal 8 karakter)"
@@ -79,7 +93,6 @@ export default function Register({ passwordRules }: Props) {
                                 <PasswordInput
                                     id="password_confirmation"
                                     required
-                                    tabIndex={4}
                                     autoComplete="new-password"
                                     name="password_confirmation"
                                     placeholder="Ulangi Kata Sandi"
@@ -93,8 +106,8 @@ export default function Register({ passwordRules }: Props) {
                             <Button
                                 type="submit"
                                 className="mt-2 w-full"
-                                tabIndex={5}
                                 data-test="register-user-button"
+                                disabled={classrooms.length === 0}
                             >
                                 {processing && <Spinner />}
                                 Daftar Sekarang
@@ -103,9 +116,7 @@ export default function Register({ passwordRules }: Props) {
 
                         <div className="text-center text-sm text-muted-foreground">
                             Sudah punya akun?{' '}
-                            <TextLink href={login()} tabIndex={6}>
-                                Masuk di sini
-                            </TextLink>
+                            <TextLink href={login()}>Masuk di sini</TextLink>
                         </div>
                     </>
                 )}

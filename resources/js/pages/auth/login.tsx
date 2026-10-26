@@ -1,4 +1,8 @@
 import { Form, Head } from '@inertiajs/react';
+import { useState } from 'react';
+import { GraduationCap, ShieldCheck } from 'lucide-react';
+import ClassroomSelect from '@/components/classroom-select';
+import type { Classroom } from '@/types/classroom';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
@@ -14,9 +18,11 @@ import { request } from '@/routes/password';
 type Props = {
     status?: string;
     canResetPassword: boolean;
+    classrooms: Classroom[];
 };
 
-export default function Login({ status, canResetPassword }: Props) {
+export default function Login({ status, canResetPassword, classrooms }: Props) {
+    const [role, setRole] = useState<'student' | 'admin'>('student');
     return (
         <>
             <Head title="Masuk" />
@@ -29,6 +35,41 @@ export default function Login({ status, canResetPassword }: Props) {
                 {({ processing, errors }) => (
                     <>
                         <div className="grid gap-6">
+                            <div
+                                className="grid grid-cols-2 gap-2"
+                                aria-label="Peran akun"
+                            >
+                                {(
+                                    [
+                                        {
+                                            value: 'student',
+                                            label: 'Siswa',
+                                            icon: GraduationCap,
+                                        },
+                                        {
+                                            value: 'admin',
+                                            label: 'Admin (Guru)',
+                                            icon: ShieldCheck,
+                                        },
+                                    ] as const
+                                ).map((option) => (
+                                    <button
+                                        key={option.value}
+                                        type="button"
+                                        aria-pressed={role === option.value}
+                                        onClick={() => setRole(option.value)}
+                                        className={`flex min-h-12 items-center justify-center gap-2 rounded-xl border px-2 py-3 text-sm font-semibold ${role === option.value ? 'border-primary bg-primary/10 text-primary' : 'border-input text-muted-foreground'}`}
+                                    >
+                                        <option.icon className="size-4" />
+                                        {option.label}
+                                    </button>
+                                ))}
+                            </div>
+                            <input
+                                type="hidden"
+                                name="login_role"
+                                value={role}
+                            />
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Alamat Email</Label>
                                 <Input
@@ -37,12 +78,26 @@ export default function Login({ status, canResetPassword }: Props) {
                                     name="email"
                                     required
                                     autoFocus
-                                    tabIndex={1}
                                     autoComplete="email"
                                     placeholder="email@example.com"
                                 />
                                 <InputError message={errors.email} />
                             </div>
+
+                            {role === 'student' && (
+                                <div className="grid gap-2">
+                                    <Label htmlFor="classroom_id">Kelas</Label>
+                                    <ClassroomSelect
+                                        classrooms={classrooms}
+                                        allowUnassigned
+                                    />
+                                    <InputError message={errors.classroom_id} />
+                                    <p className="text-xs text-muted-foreground">
+                                        Pilih kelas yang sama dengan kelas saat
+                                        mendaftar.
+                                    </p>
+                                </div>
+                            )}
 
                             <div className="grid gap-2">
                                 <div className="flex items-center">
@@ -51,7 +106,6 @@ export default function Login({ status, canResetPassword }: Props) {
                                         <TextLink
                                             href={request()}
                                             className="ml-auto text-sm"
-                                            tabIndex={5}
                                         >
                                             Lupa kata sandi?
                                         </TextLink>
@@ -61,7 +115,6 @@ export default function Login({ status, canResetPassword }: Props) {
                                     id="password"
                                     name="password"
                                     required
-                                    tabIndex={2}
                                     autoComplete="current-password"
                                     placeholder="Kata Sandi"
                                 />
@@ -69,18 +122,13 @@ export default function Login({ status, canResetPassword }: Props) {
                             </div>
 
                             <div className="flex items-center space-x-3">
-                                <Checkbox
-                                    id="remember"
-                                    name="remember"
-                                    tabIndex={3}
-                                />
+                                <Checkbox id="remember" name="remember" />
                                 <Label htmlFor="remember">Ingat saya</Label>
                             </div>
 
                             <Button
                                 type="submit"
                                 className="mt-4 w-full"
-                                tabIndex={4}
                                 disabled={processing}
                                 data-test="login-button"
                             >
@@ -91,7 +139,7 @@ export default function Login({ status, canResetPassword }: Props) {
 
                         <div className="text-center text-sm text-muted-foreground">
                             Belum punya akun?{' '}
-                            <TextLink href={register()} tabIndex={5}>
+                            <TextLink href={register()}>
                                 Daftar di sini
                             </TextLink>
                         </div>
@@ -109,6 +157,6 @@ export default function Login({ status, canResetPassword }: Props) {
 }
 
 Login.layout = {
-    title: 'Masuk ke Akun Siswa',
-    description: 'Masukkan email dan kata sandi untuk melanjutkan praktik',
+    title: 'Masuk ke LOGISTIK LAB',
+    description: 'Pilih peran untuk melanjutkan pembelajaran logistik',
 };

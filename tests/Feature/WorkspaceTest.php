@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Classroom;
 use App\Models\PracticeWorkspace;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -9,11 +10,13 @@ use function Pest\Laravel\assertDatabaseHas;
 uses(RefreshDatabase::class);
 
 test('workspace is created automatically during registration', function () {
+    $classroom = Classroom::factory()->create();
     $response = $this->post(route('register.store'), [
         'name' => 'Siswa Test',
         'email' => 'siswa@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',
+        'classroom_id' => $classroom->id,
     ]);
 
     $response->assertRedirect(route('practice.home', absolute: false));

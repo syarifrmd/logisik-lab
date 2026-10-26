@@ -9,11 +9,12 @@ use App\Http\Requests\Practice\VoidTransactionRequest;
 use App\Models\Product;
 use App\Models\StockTransaction;
 use App\Services\StockService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Symfony\Component\HttpKernel\Exception\ConflictException;
-use Symfony\Component\HttpKernel\Exception\UnprocessableEntityException;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class InboundController extends Controller
 {
@@ -77,7 +78,7 @@ class InboundController extends Controller
     /**
      * Store a newly created inbound transaction.
      */
-    public function store(StoreInboundRequest $request)
+    public function store(StoreInboundRequest $request): RedirectResponse
     {
         $workspace = $this->workspace($request);
         $validated = $request->validated();
@@ -87,10 +88,10 @@ class InboundController extends Controller
 
             return redirect()->route('practice.inbound.show', $transaction)
                 ->with('toast', ['type' => 'success', 'message' => 'Barang masuk berhasil dicatat.']);
-        } catch (ConflictException $e) {
+        } catch (ConflictHttpException $e) {
             return back()->withErrors(['stock' => $e->getMessage()])
                 ->withInput();
-        } catch (UnprocessableEntityException $e) {
+        } catch (UnprocessableEntityHttpException $e) {
             return back()->withErrors(['stock' => $e->getMessage()])
                 ->withInput();
         }
@@ -118,7 +119,7 @@ class InboundController extends Controller
     /**
      * Void the specified inbound transaction.
      */
-    public function void(VoidTransactionRequest $request, StockTransaction $transaction)
+    public function void(VoidTransactionRequest $request, StockTransaction $transaction): RedirectResponse
     {
         $workspace = $this->workspace($request);
 
@@ -130,9 +131,9 @@ class InboundController extends Controller
             $this->stockService->voidTransaction($workspace, $transaction->id, $request->validated()['reason']);
 
             return back()->with('toast', ['type' => 'success', 'message' => 'Transaksi berhasil dibatalkan.']);
-        } catch (ConflictException $e) {
+        } catch (ConflictHttpException $e) {
             return back()->withErrors(['void' => $e->getMessage()]);
-        } catch (UnprocessableEntityException $e) {
+        } catch (UnprocessableEntityHttpException $e) {
             return back()->withErrors(['void' => $e->getMessage()]);
         }
     }
