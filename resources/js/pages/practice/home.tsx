@@ -1,7 +1,13 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import StudentClassroomCard from '@/components/student-classroom-card';
 import type { Classroom } from '@/types/classroom';
-import { Package, ArrowDownToLine, ArrowUpFromLine, Boxes } from 'lucide-react';
+import {
+    ArrowDownToLine,
+    ArrowUpFromLine,
+    Boxes,
+    ChevronRight,
+    Package,
+} from 'lucide-react';
 import PracticeLayout from '@/layouts/practice/practice-layout';
 
 type Stats = {
@@ -19,38 +25,31 @@ type Props = {
 };
 
 export default function PracticeHome({ stats, classrooms }: Props) {
+    const { auth } = usePage().props;
     const statCards = [
         {
             label: 'Jumlah Barang',
             value: stats.product_count,
             sublabel: 'SKU aktif',
             icon: Package,
-            color: 'text-blue-600',
-            bg: 'bg-blue-50',
         },
         {
             label: 'Total Barang Masuk',
             value: stats.total_inbound,
             sublabel: 'unit masuk',
             icon: ArrowDownToLine,
-            color: 'text-teal-600',
-            bg: 'bg-teal-50',
         },
         {
             label: 'Total Barang Keluar',
             value: stats.total_outbound,
             sublabel: 'unit keluar',
             icon: ArrowUpFromLine,
-            color: 'text-amber-600',
-            bg: 'bg-amber-50',
         },
         {
             label: 'Total Stok',
             value: stats.total_stock_physical,
             sublabel: `Baik ${stats.total_stock_good} / Rusak ${stats.total_stock_damaged}`,
             icon: Boxes,
-            color: 'text-indigo-600',
-            bg: 'bg-indigo-50',
         },
     ];
 
@@ -70,76 +69,74 @@ export default function PracticeHome({ stats, classrooms }: Props) {
 
     return (
         <PracticeLayout title="Beranda">
-            <div className="space-y-6">
+            <div className="space-y-5">
+                <header className="flex items-center justify-between gap-3">
+                    <div>
+                        <p className="text-xs font-medium text-muted-foreground">
+                            Beranda praktik
+                        </p>
+                        <h1 className="mt-1 text-xl font-bold tracking-tight">
+                            Halo, {auth.user.name}
+                        </h1>
+                    </div>
+                    <img
+                        src="/images/logo.png"
+                        alt="AS LogiEdu"
+                        className="size-10 rounded-xl object-cover"
+                    />
+                </header>
                 <StudentClassroomCard classrooms={classrooms} />
-                {/* Welcome */}
-                <div className="rounded-xl bg-card p-5 shadow-sm">
-                    <h1 className="text-xl font-bold text-foreground">
-                        Selamat Datang di LOGISTIK LAB
-                    </h1>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        Latih keterampilanmu dalam pencatatan dan pengelolaan
-                        barang, mulai dari gudang hingga pengiriman.
-                    </p>
-                    <div className="mt-3 rounded-lg bg-primary/5 px-3 py-2">
-                        <p className="text-xs text-muted-foreground">
-                            Hasil praktik tersimpan di akunmu dan dapat
-                            dilanjutkan dari perangkat lain.
+                <section className="overflow-hidden rounded-2xl border bg-card">
+                    <div className="border-b px-4 py-3">
+                        <h2 className="text-sm font-semibold">Ringkasan stok</h2>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                            Kondisi data praktik saat ini
                         </p>
                     </div>
-                </div>
-
-                {/* Statistics */}
-                <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 divide-x divide-y">
                     {statCards.map((card) => {
                         const Icon = card.icon;
                         return (
-                            <div
-                                key={card.label}
-                                className="rounded-xl bg-card p-4 shadow-sm"
-                            >
-                                <div
-                                    className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg ${card.bg}`}
-                                >
-                                    <Icon className={`h-5 w-5 ${card.color}`} />
-                                </div>
-                                <p className="text-2xl font-bold text-foreground">
+                            <div key={card.label} className="p-4">
+                                <Icon className="mb-3 size-4 text-primary" />
+                                <p className="text-2xl font-bold">
                                     {card.value}
                                 </p>
-                                <p className="text-xs font-medium text-foreground">
+                                <p className="mt-1 text-xs font-medium">
                                     {card.label}
                                 </p>
-                                <p className="text-[11px] text-muted-foreground">
+                                <p className="mt-0.5 text-[11px] text-muted-foreground">
                                     {card.sublabel}
                                 </p>
                             </div>
                         );
                     })}
-                </div>
+                    </div>
+                </section>
 
-                {/* Quick actions */}
-                <div className="space-y-2">
-                    <h2 className="text-sm font-semibold text-muted-foreground">
-                        Akses Cepat
-                    </h2>
-                    <div className="grid grid-cols-3 gap-3">
+                <section className="overflow-hidden rounded-2xl border bg-card">
+                    <div className="border-b px-4 py-3">
+                        <h2 className="text-sm font-semibold">Mulai dari sini</h2>
+                    </div>
+                    <div className="divide-y">
                         {quickActions.map((action) => {
                             const Icon = action.icon;
                             return (
                                 <Link
                                     key={action.href}
                                     href={action.href}
-                                    className="flex flex-col items-center gap-2 rounded-xl bg-card p-4 shadow-sm transition-colors hover:bg-accent"
+                                    className="flex min-h-14 items-center gap-3 px-4 transition-colors hover:bg-muted/60"
                                 >
-                                    <Icon className="h-6 w-6 text-primary" />
-                                    <span className="text-center text-xs font-medium">
-                                        {action.label}
+                                    <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                        <Icon className="size-4" />
                                     </span>
+                                    <span className="flex-1 text-sm font-medium">{action.label}</span>
+                                    <ChevronRight className="size-4 text-muted-foreground" />
                                 </Link>
                             );
                         })}
                     </div>
-                </div>
+                </section>
             </div>
         </PracticeLayout>
     );

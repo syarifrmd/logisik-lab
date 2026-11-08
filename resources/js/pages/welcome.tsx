@@ -30,12 +30,12 @@ export default function Welcome() {
 
     return (
         <>
-            <Head title="LOGISTIK LAB" />
-            <div className="flex min-h-screen flex-col bg-gradient-to-b from-blue-50 via-white to-teal-50">
-                {/* Header */}
-                <header className="flex items-center justify-between px-6 py-4">
-                    <span className="text-lg font-bold tracking-tight text-primary">
-                        LOGISTIK LAB
+            <Head title="AS LogiEdu" />
+            <div className="flex min-h-screen flex-col bg-slate-50">
+                <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
+                    <span className="flex items-center gap-2 text-lg font-bold tracking-tight text-slate-900">
+                        <img src="/images/logo.png" alt="" className="size-9 rounded-xl object-cover" />
+                        AS LogiEdu
                     </span>
                     {isLoggedIn ? (
                         <Link
@@ -62,72 +62,56 @@ export default function Welcome() {
                     )}
                 </header>
 
-                {/* Hero */}
-                <main className="mx-auto flex max-w-2xl flex-1 flex-col items-center justify-center px-6 py-12 text-center">
-                    <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10">
-                        <Boxes className="h-10 w-10 text-primary" />
-                    </div>
-
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                        Selamat Datang di LOGISTIK LAB
-                    </h1>
-                    <p className="mt-2 text-lg font-medium text-primary/80">
-                        Website Praktik Manajemen Logistik
-                    </p>
-                    <p className="mt-4 max-w-lg text-sm text-muted-foreground">
-                        Latih keterampilanmu dalam pencatatan dan pengelolaan
-                        barang, mulai dari gudang hingga pengiriman.
-                    </p>
-
-                    <Link
-                        href={isLoggedIn ? dashboard() : '/register'}
-                        className="mt-8 inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-3.5 text-base font-semibold text-primary-foreground shadow-lg transition-all hover:bg-primary/90 hover:shadow-xl"
-                    >
-                        {isLoggedIn ? continueLabel : 'Mulai Praktik'}
-                        <ArrowRight className="h-5 w-5" />
-                    </Link>
-
-                    {!isLoggedIn && (
-                        <p className="mt-3 text-xs text-muted-foreground">
-                            Belum punya akun?{' '}
+                <main className="mx-auto flex w-full max-w-6xl flex-1 items-center px-6 py-14">
+                    <div className="grid w-full gap-12 lg:grid-cols-[1.1fr_.9fr] lg:items-center">
+                        <section>
+                            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+                                Platform praktik logistik
+                            </p>
+                            <h1 className="max-w-2xl text-4xl font-bold tracking-tight text-slate-950 sm:text-6xl">
+                                Belajar mengelola barang dengan cara yang nyata.
+                            </h1>
+                            <p className="mt-5 max-w-xl text-base leading-7 text-slate-600">
+                                AS LogiEdu membantu siswa mencatat stok, mengikuti
+                                alur pengiriman, dan menyelesaikan praktik dengan
+                                data yang rapi.
+                            </p>
                             <Link
-                                href="/register"
-                                className="font-medium text-primary underline underline-offset-2"
+                                href={isLoggedIn ? dashboard() : '/register'}
+                                className="mt-8 inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
                             >
-                                Daftar di sini
+                                {isLoggedIn ? continueLabel : 'Mulai Praktik'}
+                                <ArrowRight className="h-4 w-4" />
                             </Link>
-                        </p>
-                    )}
-
-                    {/* Features */}
-                    <div className="mt-12 grid w-full gap-4 sm:grid-cols-3">
-                        {features.map((feature) => {
-                            const Icon = feature.icon;
-                            return (
-                                <div
-                                    key={feature.label}
-                                    className="rounded-xl bg-card p-5 text-left shadow-sm"
-                                >
-                                    <Icon className="mb-3 h-7 w-7 text-primary" />
-                                    <h3 className="text-sm font-semibold text-foreground">
-                                        {feature.label}
-                                    </h3>
-                                    <p className="mt-1 text-xs text-muted-foreground">
-                                        {feature.desc}
-                                    </p>
+                        </section>
+                        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+                            <div className="flex items-center gap-3 border-b border-slate-100 pb-5">
+                                <img src="/images/logo.png" alt="" className="size-12 rounded-2xl object-cover" />
+                                <div>
+                                    <p className="font-semibold text-slate-900">Ruang praktik</p>
+                                    <p className="text-sm text-slate-500">Satu tempat untuk seluruh alur logistik</p>
                                 </div>
-                            );
-                        })}
+                            </div>
+                            <div className="mt-5 space-y-3">
+                                {features.map((feature) => {
+                                    const Icon = feature.icon;
+                                    return (
+                                        <div key={feature.label} className="flex gap-3 rounded-2xl bg-slate-50 p-4">
+                                            <Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                                            <div>
+                                                <h3 className="text-sm font-semibold text-slate-900">{feature.label}</h3>
+                                                <p className="mt-1 text-xs leading-5 text-slate-500">{feature.desc}</p>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </section>
                     </div>
-
-                    <p className="mt-8 text-xs text-muted-foreground">
-                        Hasil praktik tersimpan di akunmu dan dapat dilanjutkan
-                        dari perangkat lain.
-                    </p>
                 </main>
 
-                <footer className="px-6 py-6 text-center text-xs text-muted-foreground">
-                    LOGISTIK LAB &middot; Media Pembelajaran Manajemen Logistik
+                <footer className="mx-auto w-full max-w-6xl px-6 py-6 text-xs text-slate-500">
+                    AS LogiEdu · Media pembelajaran manajemen logistik
                 </footer>
             </div>
         </>

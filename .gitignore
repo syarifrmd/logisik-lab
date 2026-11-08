@@ -42,3 +42,10 @@ yarn-error.log
 /boost.json
 /opencode.json
 /opencode.jsonc
+
+# Showcase and slides
+showcase/
+showcase-deck/
+showcase-*.png
+slide-*.png
+

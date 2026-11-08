@@ -1,6 +1,5 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
-    GraduationCap,
     LayoutDashboard,
     LogOut,
     UserRound,
@@ -20,7 +19,7 @@ export default function AdminLayout({
     const { auth } = usePage().props;
     return (
         <>
-            <Head title={`${title} · Ruang Guru`} />
+            <Head title={`${title} · AS LogiEdu`} />
             <div className="min-h-svh bg-muted/30">
                 <header className="sticky top-0 z-30 border-b border-border/70 bg-background/95 backdrop-blur">
                     <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
@@ -28,15 +27,13 @@ export default function AdminLayout({
                             href={dashboard()}
                             className="flex min-w-0 items-center gap-2.5"
                         >
-                            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                                <GraduationCap className="size-6" />
-                            </span>
+                            <img src="/images/logo.png" alt="" className="size-10 shrink-0 rounded-xl object-cover" />
                             <span>
                                 <span className="block text-sm font-bold tracking-tight text-primary">
-                                    LOGISTIK LAB
+                                    AS LogiEdu
                                 </span>
                                 <span className="block text-xs text-muted-foreground">
-                                    Ruang Guru
+                                    Ruang Pengajar
                                 </span>
                             </span>
                         </Link>

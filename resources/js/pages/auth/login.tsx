@@ -157,6 +157,6 @@ export default function Login({ status, canResetPassword, classrooms }: Props) {
 }
 
 Login.layout = {
-    title: 'Masuk ke LOGISTIK LAB',
+    title: 'Masuk ke AS LogiEdu',
     description: 'Pilih peran untuk melanjutkan pembelajaran logistik',
 };

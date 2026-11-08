@@ -8,8 +8,9 @@ export function PracticeHeader({
     return (
         <header className="sticky top-0 z-30 border-b bg-card/80 backdrop-blur-sm lg:hidden">
             <div className="flex items-center justify-between px-4 py-3">
-                <span className="text-lg font-bold tracking-tight text-primary">
-                    LOGISTIK LAB
+                <span className="flex items-center gap-2 text-lg font-bold tracking-tight text-primary">
+                    <img src="/images/logo.png" alt="" className="size-8 rounded-lg object-cover" />
+                    AS LogiEdu
                 </span>
                 <div className="max-w-[40vw] min-w-0 text-right">
                     <p className="truncate text-sm text-muted-foreground">
