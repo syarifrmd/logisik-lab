@@ -3,6 +3,7 @@ import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileCo
 import DeleteUser from '@/components/delete-user';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import ResetProgress from '@/components/reset-progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,10 +12,13 @@ import type { Auth } from '@/types';
 
 type PageProps = {
     auth: Auth;
+    flash?: {
+        resetProgress?: boolean;
+    };
 };
 
 export default function Profile() {
-    const { auth } = usePage<PageProps>().props;
+    const { auth, flash } = usePage<PageProps>().props;
 
     return (
         <>
@@ -111,6 +115,9 @@ export default function Profile() {
             </div>
 
             <DeleteUser />
+            {auth.user.role === 'student' && (
+                <ResetProgress showSuccess={flash?.resetProgress} />
+            )}
         </>
     );
 }

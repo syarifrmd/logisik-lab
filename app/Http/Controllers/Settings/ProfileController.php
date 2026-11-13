@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Services\ResetStudentProgressService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -62,5 +63,21 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    /**
+     * Reset the authenticated student's practice progress.
+     */
+    public function resetProgress(
+        ProfileDeleteRequest $request,
+        ResetStudentProgressService $resetStudentProgressService,
+    ): RedirectResponse {
+        abort_if($request->user()->isAdmin(), 403);
+
+        $resetStudentProgressService->reset($request->user());
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Progres praktik berhasil direset.']);
+
+        return to_route('profile.edit')->with('resetProgress', true);
     }
 }
